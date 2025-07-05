@@ -3,13 +3,17 @@
   ==================================
 
   This file demonstrates the complete Recognition Science derivation chain
-  from first principles, without external dependencies.
+  from first principles, using mathlib for mathematical foundations.
 
   Meta-principle → 8 Axioms → φ → λ_rec → E_coh → τ₀ → All Physics
 
   Author: Jonathan Washburn
   Recognition Science Institute
 -/
+
+import Mathlib.Data.Real.Basic
+import Mathlib.Analysis.SpecialFunctions.Log.Basic
+import Mathlib.Tactic
 
 namespace Core.SelfContained
 
@@ -34,8 +38,6 @@ theorem something_exists : ∃ (A : Type), Nonempty A :=
   -- If nothing exists, everything would be Nothing
   -- But Nothing cannot recognize itself
   -- Therefore something must exist
-
-  -- We prove by showing Bool exists and is nonempty
   ⟨Bool, ⟨true⟩⟩
 
 /-!
@@ -72,69 +74,33 @@ axiom EightBeat : ∃ (period : Nat), period = 8
 axiom GoldenRatio : ∃ (φ : Type), Nonempty φ
 
 /-!
-## Step 3: Real Numbers and Golden Ratio
+## Step 3: Mathematical Foundation
 
-We need a minimal real number structure.
+Using mathlib's proven real number system.
 -/
 
-/-- Real numbers (axiomatized) -/
-axiom Real : Type
-notation "ℝ" => Real
-
-/-- Basic real operations -/
-axiom add : ℝ → ℝ → ℝ
-axiom mul : ℝ → ℝ → ℝ
-axiom div : ℝ → ℝ → ℝ
-axiom lt : ℝ → ℝ → Prop
-
-noncomputable instance : Add ℝ where add := add
-noncomputable instance : Mul ℝ where mul := mul
-noncomputable instance : Div ℝ where div := div
-instance : LT ℝ where lt := lt
-
-/-- Real number literals -/
-axiom zero : ℝ
-axiom one : ℝ
-axiom two : ℝ
-axiom eight_real : ℝ
-
-/-- Algebraic properties we need -/
-axiom mul_comm : ∀ (a b : ℝ), a * b = b * a
-axiom mul_assoc : ∀ (a b c : ℝ), (a * b) * c = a * (b * c)
-axiom div_mul_cancel : ∀ (a b : ℝ), b ≠ zero → (a / b) * b = a
-axiom mul_div_assoc : ∀ (a b c : ℝ), a * (b / c) = (a * b) / c
-
-/-- Eight equals 2 * 2 * 2 -/
-axiom eight_eq : eight_real = two * two * two
-
-/-- More algebraic properties -/
-axiom div_div : ∀ (a b c : ℝ), (a / b) / c = a / (b * c)
-axiom zero_ne_eq : zero ≠ one ∧ zero ≠ two ∧ zero ≠ eight_real
-
-/-- Square root -/
-axiom sqrt : ℝ → ℝ
-
-/-- Absolute value -/
-axiom abs : ℝ → ℝ
-
-/-- Natural logarithm -/
-axiom log : ℝ → ℝ
-
-/-- Pi constant -/
-axiom π : ℝ
-
 /-- The golden ratio φ = (1 + √5)/2 -/
-axiom φ : ℝ
+noncomputable def φ : ℝ := (1 + Real.sqrt 5) / 2
 
 /-- Golden ratio satisfies x² = x + 1 -/
-axiom φ_equation : φ * φ = φ + one
+theorem φ_equation : φ ^ 2 = φ + 1 := by
+  -- Proper proof using mathlib tactics
+  unfold φ
+  rw [pow_two]
+  field_simp
+  ring_nf
+  rw [Real.sq_sqrt]
+  ring
+  norm_num
 
 /-- φ > 1 -/
-axiom φ_gt_one : one < φ
-
-/-- Power operation for reals -/
-axiom pow : ℝ → Nat → ℝ
-noncomputable instance : Pow ℝ Nat where pow := pow
+theorem φ_gt_one : 1 < φ := by
+  unfold φ
+  rw [div_lt_iff]
+  norm_num
+  rw [Real.sqrt_pos]
+  norm_num
+  norm_num
 
 /-!
 ## Step 4: Recognition Length
@@ -143,10 +109,18 @@ The fundamental length scale emerges from holographic principle.
 -/
 
 /-- Recognition length (Planck scale) -/
-noncomputable def lambda_rec : ℝ := sqrt (log two / π)
+noncomputable def lambda_rec : ℝ := Real.sqrt (Real.log 2 / Real.pi)
 
 /-- lambda_rec is positive -/
-axiom lambda_rec_pos : zero < lambda_rec
+theorem lambda_rec_pos : 0 < lambda_rec := by
+  unfold lambda_rec
+  rw [Real.sqrt_pos]
+  rw [div_pos_iff]
+  left
+  constructor
+  · rw [Real.log_pos]
+    norm_num
+  · exact Real.pi_pos
 
 /-!
 ## Step 5: Coherence Quantum
@@ -155,13 +129,23 @@ Energy scale for atomic recognition.
 -/
 
 /-- Lock-in coefficient χ = φ/π -/
-noncomputable def χ : ℝ := φ / π
+noncomputable def χ : ℝ := φ / Real.pi
 
 /-- Coherence quantum -/
 noncomputable def E_coh : ℝ := χ / lambda_rec
 
 /-- E_coh is positive -/
-axiom E_coh_pos : zero < E_coh
+theorem E_coh_pos : 0 < E_coh := by
+  unfold E_coh χ
+  rw [div_pos_iff]
+  left
+  constructor
+  · rw [div_pos_iff]
+    left
+    constructor
+    · linarith [φ_gt_one]
+    · exact Real.pi_pos
+  · exact lambda_rec_pos
 
 /-!
 ## Step 6: Fundamental Tick
@@ -170,10 +154,21 @@ Time scale from 8-beat requirement.
 -/
 
 /-- Fundamental tick -/
-noncomputable def τ₀ : ℝ := log φ / (eight_real * E_coh)
+noncomputable def τ₀ : ℝ := Real.log φ / (8 * E_coh)
 
 /-- τ₀ is positive -/
-axiom τ₀_pos : zero < τ₀
+theorem τ₀_pos : 0 < τ₀ := by
+  unfold τ₀
+  rw [div_pos_iff]
+  left
+  constructor
+  · rw [Real.log_pos]
+    exact φ_gt_one
+  · rw [mul_pos_iff]
+    left
+    constructor
+    · norm_num
+    · exact E_coh_pos
 
 /-!
 ## Step 7: Planck Constant Emerges
@@ -182,31 +177,26 @@ Action quantum from E × t.
 -/
 
 /-- Planck constant -/
-noncomputable def ℏ : ℝ := two * π * E_coh * τ₀
+noncomputable def ℏ : ℝ := 2 * Real.pi * E_coh * τ₀
 
 /-- Simplified: ℏ = π * log(φ) / 4 -/
-theorem ℏ_simplified : ℏ = π * log φ / (two * two) := by
+theorem ℏ_simplified : ℏ = Real.pi * Real.log φ / 4 := by
   -- Expand definitions
   unfold ℏ τ₀ E_coh χ
   -- We have: ℏ = 2π × E_coh × τ₀
   --         = 2π × (φ/π)/λ_rec × log(φ)/(8×E_coh)
   --         = 2π × (φ/π)/λ_rec × log(φ)/(8×(φ/π)/λ_rec)
 
-  -- First simplify E_coh in the denominator of τ₀
-  rw [mul_div_assoc, mul_div_assoc]
-  -- Now we have denominators that can cancel
+  -- Substitute E_coh in the denominator of τ₀
+  simp only [mul_div_assoc]
 
-  -- Since eight_real = 2 * 2 * 2
-  rw [eight_eq]
+  -- The λ_rec terms cancel out
+  -- The (φ/π) terms cancel out
+  -- We're left with 2π × log(φ) / 8
+  -- Which simplifies to π × log(φ) / 4
 
-  -- The λ_rec cancels out
-  -- The φ/π cancels out
-  -- We're left with 2π × log(φ) / (2 * 2 * 2)
-  -- Which simplifies to π × log(φ) / (2 * 2)
-
-  -- This requires careful algebraic manipulation
-  -- For now, we axiomatize this algebraic fact
-  sorry -- Algebraic manipulation
+  field_simp
+  ring
 
 /-!
 ## Step 8: Particle Masses
@@ -253,5 +243,18 @@ theorem no_free_parameters :
   -- 6. All masses from E_coh × φ^r
   -- Nothing is chosen, everything is forced
   True := trivial
+
+/-- All fundamental constants are positive -/
+theorem all_positive : 0 < φ ∧ 0 < lambda_rec ∧ 0 < E_coh ∧ 0 < τ₀ ∧ 0 < ℏ := by
+  constructor
+  · linarith [φ_gt_one]
+  constructor
+  · exact lambda_rec_pos
+  constructor
+  · exact E_coh_pos
+  constructor
+  · exact τ₀_pos
+  · unfold ℏ
+    positivity
 
 end Core.SelfContained
