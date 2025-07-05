@@ -38,7 +38,7 @@ def phi_den : Nat := 1000
 /-- φ > 1 (proven by computation) -/
 theorem phi_greater_than_one : phi_den < phi_num := by
   -- 1000 < 1618 - provable by computation
-  rfl
+  decide
 
 /-- Golden ratio equation φ² ≈ φ + 1 (proven to within precision) -/
 theorem phi_equation_approx :
@@ -47,8 +47,8 @@ theorem phi_equation_approx :
   phi_squared + 100 > phi_plus_one ∧ phi_plus_one > phi_squared - 100 := by
   -- Proves equation holds to within 0.01% precision
   constructor
-  · rfl  -- 2617924 + 100 > 2618000
-  · rfl  -- 2618000 > 2617924 - 100
+  · decide  -- 2617924 + 100 > 2618000
+  · decide  -- 2618000 > 2617924 - 100
 
 /-!
 ## Recognition Length (Proven Positive)
@@ -60,7 +60,7 @@ def rec_length_den : Nat := 1000
 
 /-- Recognition length is positive (proven) -/
 theorem rec_length_positive : 0 < rec_length_num := by
-  rfl  -- 0 < 469 is trivially true
+  decide  -- 0 < 469 is trivially true
 
 /-!
 ## Coherence Quantum (All Calculations Proven)
@@ -81,7 +81,7 @@ def E_coh_den : Nat := chi_den * rec_length_num
 /-- E_coh is positive (proven) -/
 theorem E_coh_positive : 0 < E_coh_num := by
   -- All components positive, so product positive
-  rfl
+  decide
 
 /-!
 ## Particle Masses (Complete Derivation)
@@ -105,9 +105,16 @@ theorem all_masses_positive (r : Nat) :
   0 < (mass_at_rung r).1 ∧ 0 < (mass_at_rung r).2 := by
   constructor
   · -- numerator positive
-    rfl  -- E_coh_num * φ^r > 0 since both factors > 0
+    simp [mass_at_rung]
+    apply Nat.mul_pos E_coh_positive
+    apply Nat.pow_pos
+    decide  -- phi_num > 0
   · -- denominator positive
-    rfl  -- E_coh_den * φ^r > 0 since both factors > 0
+    simp [mass_at_rung]
+    apply Nat.mul_pos
+    · decide  -- E_coh_den > 0
+    · apply Nat.pow_pos
+      decide  -- phi_den > 0
 
 /-!
 ## Complete Derivation Chain (Zero Free Parameters)
@@ -129,11 +136,11 @@ theorem zero_adjustable_parameters :
   (0 < E_coh_num) ∧
   (∀ r : Nat, 0 < (mass_at_rung r).1) := by
   constructor
-  · rfl  -- φ_num = 1618 > 0
+  · decide  -- φ_num = 1618 > 0
   constructor
-  · rfl  -- rec_length_num = 469 > 0
+  · decide  -- rec_length_num = 469 > 0
   constructor
-  · rfl  -- E_coh_num > 0
+  · decide  -- E_coh_num > 0
   · intro r
     exact (all_masses_positive r).1
 
