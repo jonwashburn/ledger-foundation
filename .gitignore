@@ -1,1 +1,5 @@
 ._*
+
+# Lake build artifacts
+/.lake/packages/
+/.lake/build/
