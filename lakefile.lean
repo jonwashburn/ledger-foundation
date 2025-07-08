@@ -20,7 +20,7 @@ package RecognitionScience where
   ]
   buildType := BuildType.release
 
--- No external dependencies - self-contained with local FinCardinality implementation
+-- Zero external dependencies - self-contained foundation
 
 @[default_target]
 lean_lib RecognitionScience where
