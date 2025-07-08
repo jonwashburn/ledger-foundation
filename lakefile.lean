@@ -20,7 +20,8 @@ package RecognitionScience where
   ]
   buildType := BuildType.release
 
--- Zero external dependencies - self-contained foundation
+-- Mathlib dependency for advanced proofs
+require mathlib from git "https://github.com/leanprover-community/mathlib4" @ "v4.11.0"
 
 @[default_target]
 lean_lib RecognitionScience where
